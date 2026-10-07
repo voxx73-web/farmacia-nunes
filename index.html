@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#087a4b"><meta name="description" content="Farmácia Nunes — organizador pessoal de medicamentos e infusões.">
+<title>Farmácia Nunes</title><link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app-shell">
+<header class="topbar"><div class="brand"><div class="brand-mark">⚕</div><div><strong>Farmácia <span>Nunes</span></strong><small>A tua farmácia em casa</small></div></div><button class="icon-btn" id="settingsBtn" aria-label="Definições">⚙</button></header>
+<main>
+<section id="home" class="screen active">
+<div class="welcome"><div><span class="eyebrow">ORGANIZADOR PESSOAL</span><h1>Olá! 👋<br><b>O que estás a sentir?</b></h1><p>Encontra rapidamente os produtos que tens em casa.</p></div><div class="welcome-cross">✚</div></div>
+<div class="searchbox"><span>⌕</span><input id="search" placeholder="Pesquisar medicamento ou sintoma…" autocomplete="off"><button id="clearSearch" class="clear">×</button></div>
+<div class="section-head"><h2>Sintomas</h2><button class="link" data-nav="symptoms">Ver todos</button></div>
+<div id="homeSymptoms" class="symptom-grid"></div>
+<div class="section-head"><h2>Adicionados recentemente</h2><button class="link" data-nav="meds">Ver todos</button></div>
+<div id="recent" class="product-list"></div>
+</section>
+<section id="meds" class="screen"><div class="page-title"><div><span class="eyebrow">A TUA FARMÁCIA</span><h1>Os meus produtos</h1></div><button class="primary small" id="addBtn">＋ Adicionar</button></div><div class="searchbox compact"><span>⌕</span><input id="medSearch" placeholder="Procurar produto…"></div><div class="filters" id="filters"></div><div id="inventory" class="product-list"></div></section>
+<section id="symptoms" class="screen"><div class="page-title"><div><span class="eyebrow">GUIA RÁPIDO</span><h1>Os meus sintomas</h1></div></div><div id="allSymptoms" class="symptom-grid"></div><div id="symptomResults" class="symptom-results"></div></section>
+<section id="alerts" class="screen"><div class="page-title"><div><span class="eyebrow">SEGURANÇA</span><h1>Alertas importantes</h1></div></div><div class="alert-card red"><b>💊 Não duplicar princípios ativos</b><p>Ex.: vários produtos podem conter paracetamol. Verifica sempre a composição.</p></div><div class="alert-card orange"><b>⚠️ Cuidado com anti-inflamatórios</b><p>Não juntes diferentes anti-inflamatórios por iniciativa própria.</p></div><div class="alert-card blue"><b>🧾 Medicamentos sujeitos a receita</b><p>Alguns produtos da lista requerem receita médica. Segue a indicação profissional.</p></div><div class="alert-card green"><b>🦠 Antibióticos</b><p>Não uses antibióticos sem indicação médica e completa o tratamento prescrito.</p></div><div class="help-card">👨‍⚕️ <div><b>Em caso de dúvida</b><p>Consulta o teu farmacêutico ou médico.</p></div></div></section>
+</main>
+<nav class="bottom-nav"><button data-nav="home" class="active">⌂<span>Início</span></button><button data-nav="meds">💊<span>Produtos</span></button><button data-nav="symptoms">♧<span>Sintomas</span></button><button data-nav="alerts">⚠<span>Alertas</span></button></nav>
+</div>
+<dialog id="productDialog"><form id="productForm"><div class="modal-head"><div><span class="eyebrow">NOVO PRODUTO</span><h2>Adicionar à farmácia</h2></div><button type="button" class="icon-btn" id="closeDialog">×</button></div><div class="form-grid"><label>Nome *<input id="fName" required></label><label>Princípio ativo / composição<input id="fActive"></label><label>Categoria<select id="fType"><option value="medicamento">Medicamento</option><option value="creme">Creme / gel</option><option value="cha">Chá / infusão</option></select></label><label>Receita<select id="fRx"><option>Sem receita</option><option>Com receita</option><option>Não aplicável</option><option>Confirmar</option></select></label><label class="full">Serve para *<textarea id="fUse" required rows="2"></textarea></label><label class="full">Sintomas / palavras-chave<textarea id="fSymptoms" rows="2" placeholder="ex.: dor de cabeça, febre, gripe"></textarea></label><label class="full">Cuidados / alerta<textarea id="fWarning" rows="2"></textarea></label></div><div class="modal-actions"><button type="button" class="secondary" id="cancelDialog">Cancelar</button><button class="primary">Guardar produto</button></div></form></dialog>
+<script src="backend.js"></script><script src="app.js"></script>
+</body></html>
