@@ -31,6 +31,27 @@ async function deleteProduct(id){
  if(firebaseReady&&!id.startsWith('custom-')){try{await db.deleteDoc(db.doc(db.getFirestore(db.app),'products',id));return}catch(e){console.warn(e)}}
  saveLocal(local().filter(x=>x.id!==id));
 }
+const HEALTH_KEY='nunes-care-health-v1';
+const localHealth=()=>JSON.parse(localStorage.getItem(HEALTH_KEY)||'null');
+const saveLocalHealth=x=>localStorage.setItem(HEALTH_KEY,JSON.stringify(x));
+async function loadHealthRecord(){
+ if(!firebaseReady)await setupFirebase();
+ if(firebaseReady){try{
+   const {getDoc,doc}=await import('https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js');
+   const ref=doc(db.getFirestore(db.app),'settings','health');
+   const snap=await getDoc(ref);
+   return snap.exists()?snap.data():null;
+ }catch(e){console.warn('Firebase saúde indisponível',e)}}
+ return localHealth();
+}
+async function saveHealthRecord(record){
+ if(!firebaseReady)await setupFirebase();
+ if(firebaseReady){try{
+   const {setDoc,doc}=await import('https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js');
+   await setDoc(doc(db.getFirestore(db.app),'settings','health'),record);
+   return;
+ }catch(e){console.warn('Firebase saúde indisponível',e)}}
+ saveLocalHealth(record);
+}
 function isBackendConfigured(){return firebaseReady}
-
-window.NunesBackend={loadProducts,saveProduct,deleteProduct,isBackendConfigured};
+window.NunesBackend={loadProducts,saveProduct,deleteProduct,isBackendConfigured,loadHealthRecord,saveHealthRecord};

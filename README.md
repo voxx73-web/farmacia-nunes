@@ -7,10 +7,11 @@ Versão mobile-first do organizador pessoal de medicamentos, cremes e chás/infu
 - Pesquisa por produto, composição e sintomas.
 - Categorias de medicamentos, cremes/géis e chás/infusões.
 - Botão **Adicionar** com formulário completo.
-- Botão **Apagar** apenas para produtos adicionados pelo utilizador.
+- Botão **Apagar** apenas para produtos adicionados pelo utilizador (os produtos base ficam protegidos).
 - Todos os produtos base e os chás enviados nas fotografias estão incluídos.
 - Funciona diretamente offline (abrindo `index.html`) usando `localStorage`. A versão anterior usava módulos ES (`type="module"`), que podem ser bloqueados por alguns navegadores quando o ficheiro é aberto com `file://`. Esta versão foi corrigida para funcionar offline.
-- Backend opcional com **Firebase Firestore**, para que os produtos adicionados possam ficar sincronizados entre dispositivos.
+- Registo pessoal do estado de saúde: data desde que estás doente, estado em vigor/terminado e seleção dos produtos que começaste a tomar.
+- Backend opcional com **Firebase Firestore**, para que os produtos adicionados e o registo atual de saúde possam ser guardados online.
 
 ## Publicar no GitHub Pages
 1. Cria um repositório, por exemplo `farmacia-nunes`.

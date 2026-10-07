@@ -30,12 +30,21 @@ const symptoms=[['🤕','Dor de cabeça','dor de cabeça'],['🤧','Nariz entupi
 const icon={medicamento:'💊',creme:'🧴',cha:'🌿'};let products=[];let current='home';let activeSymptom='';
 const $=id=>document.getElementById(id);const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
 
-async function init(){products=await loadProducts(BASE);bind();renderAll();}
-function bind(){document.querySelectorAll('[data-nav]').forEach(b=>b.addEventListener('click',()=>navigate(b.dataset.nav)));$('search').addEventListener('input',()=>{renderHome();if($('search').value.trim())navigate('meds')});$('medSearch').addEventListener('input',renderInventory);$('clearSearch').onclick=()=>{$('search').value='';renderHome()};$('addBtn').onclick=openDialog;$('closeDialog').onclick=closeDialog;$('cancelDialog').onclick=closeDialog;$('productForm').onsubmit=addProduct;}
+async function init(){products=await loadProducts(BASE);bind();await loadHealth();renderAll();renderHealthCard();}
+function bind(){
+document.querySelectorAll('[data-nav]').forEach(b=>b.addEventListener('click',()=>navigate(b.dataset.nav)));
+$('search').addEventListener('input',()=>{renderHome();if($('search').value.trim())navigate('meds')});
+$('medSearch').addEventListener('input',renderInventory);
+$('clearSearch').onclick=()=>{$('search').value='';renderHome()};
+$('addBtn').onclick=openDialog;$('closeDialog').onclick=closeDialog;$('cancelDialog').onclick=closeDialog;
+$('productForm').onsubmit=addProduct;
+$('healthBtn').onclick=openHealthDialog;$('healthClose').onclick=closeHealthDialog;$('healthCancel').onclick=closeHealthDialog;
+$('healthForm').onsubmit=saveHealth;$('finishHealthBtn').onclick=finishHealth;
+}
 function navigate(id){current=id;document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('active',s.id===id));document.querySelectorAll('.bottom-nav button').forEach(b=>b.classList.toggle('active',b.dataset.nav===id));if(id==='meds')renderInventory();if(id==='symptoms')renderAllSymptoms();window.scrollTo({top:0,behavior:'smooth'})}
 function renderAll(){renderHome();renderInventory();renderAllSymptoms()}
 function symptomButton(s){return `<button class="symptom ${activeSymptom===s[2]?'active':''}" data-symptom="${esc(s[2])}"><span class="sicon">${s[0]}</span><span>${s[1]}</span></button>`}
-function renderHome(){$('homeSymptoms').innerHTML=symptoms.slice(0,9).map(symptomButton).join('');document.querySelectorAll('[data-symptom]').forEach(b=>b.onclick=()=>showSymptom(b.dataset.symptom));let q=$('search').value.toLowerCase().trim();let list=products.filter(p=>!q||text(p).includes(q)).slice(0,5);$('recent').innerHTML=list.map(productCard).join('')||empty('Não encontrei produtos.')}
+function renderHome(){$('homeSymptoms').innerHTML=symptoms.slice(0,9).map(symptomButton).join('');document.querySelectorAll('[data-symptom]').forEach(b=>b.onclick=()=>showSymptom(b.dataset.symptom));let q=$('search').value.toLowerCase().trim();let list=products.filter(p=>!q||text(p).includes(q)).slice(0,5);$('recent').innerHTML=list.map(productCard).join('')||empty('Não encontrei produtos.');renderHealthCard()}
 function renderAllSymptoms(){$('allSymptoms').innerHTML=symptoms.map(symptomButton).join('');document.querySelectorAll('[data-symptom]').forEach(b=>b.onclick=()=>showSymptom(b.dataset.symptom));if(activeSymptom)renderSymptomResults()}
 function filters(){return [['all','Todos'],['medicamento','Medicamentos'],['creme','Cremes / gel'],['cha','Chás / infusões']].map(([v,n])=>`<button class="filter ${v==='all'?'active':''}" data-filter="${v}">${n}</button>`).join('')}
 function renderInventory(){if(!$('filters').innerHTML)$('filters').innerHTML=filters();let q=$('medSearch').value.toLowerCase().trim();let selected=document.querySelector('.filter.active')?.dataset.filter||'all';let list=products.filter(p=>(selected==='all'||p.type===selected)&&(!q||text(p).includes(q)));$('inventory').innerHTML=list.map(productCard).join('')||empty('Nenhum produto encontrado.');document.querySelectorAll('.filter').forEach(b=>b.onclick=()=>{document.querySelectorAll('.filter').forEach(x=>x.classList.remove('active'));b.classList.add('active');renderInventory()});document.querySelectorAll('.product-delete').forEach(b=>b.onclick=()=>removeProduct(b.dataset.id))}
@@ -46,5 +55,47 @@ function showSymptom(k){activeSymptom=k;navigate('symptoms');renderAllSymptoms()
 function renderSymptomResults(){let label=symptoms.find(s=>s[2]===activeSymptom)?.[1]||activeSymptom;let found=products.filter(p=>p.symptoms.some(s=>s.toLowerCase().includes(activeSymptom)||activeSymptom.includes(s.toLowerCase()))).slice(0,10);$('symptomResults').innerHTML=`<div class="result-head">Para: ${esc(label)}</div>${found.map(p=>`<div class="recommend"><b>${icon[p.type]} ${esc(p.name)}</b><p>${esc(p.use)}</p><span class="pill ${p.rx==='Com receita'?'rx':''}">${esc(p.rx)}</span><p>⚠️ ${esc(p.warning||'Confirma sempre a bula.')}</p></div>`).join('')||empty('Não encontrei correspondência direta.')}`}
 async function addProduct(e){e.preventDefault();let p={id:'custom-'+Date.now(),name:$('fName').value.trim(),active:$('fActive').value.trim(),type:$('fType').value,use:$('fUse').value.trim(),symptoms:$('fSymptoms').value.split(',').map(x=>x.trim().toLowerCase()).filter(Boolean),rx:$('fRx').value,warning:$('fWarning').value.trim(),base:false,createdAt:Date.now()};await saveProduct(p);products=await loadProducts(BASE);closeDialog();renderAll();navigate('meds')}
 async function removeProduct(id){let p=products.find(x=>x.id===id);if(!p||!confirm(`Apagar “${p.name}”?`))return;await deleteProduct(id);products=await loadProducts(BASE);renderAll()}
+let healthRecord=null;
+async function loadHealth(){healthRecord=await loadHealthRecord();}
+function formatDate(v){if(!v)return '';let [y,m,d]=v.split('-');return d&&m&&y?`${d}/${m}/${y}`:v}
+function renderHealthCard(){
+ const el=$('healthCard'); if(!el)return;
+ if(!healthRecord){
+  el.innerHTML=`<div class="health-empty"><div><span class="eyebrow">COMO ESTÁS</span><h2>Estás doente?</h2><p>Regista desde que dia estás doente e o que começaste a tomar.</p></div><button class="primary small" id="healthBtn">＋ Registar</button></div>`;
+ }else{
+  const names=(healthRecord.products||[]).map(id=>products.find(p=>p.id===id)?.name).filter(Boolean);
+  const status=healthRecord.active!==false;
+  el.innerHTML=`<div class="health-card ${status?'is-active':'is-done'}">
+   <div class="health-top"><div><span class="eyebrow">${status?'SITUAÇÃO ATUAL':'REGISTO ANTERIOR'}</span><h2>Doente desde ${esc(formatDate(healthRecord.startDate))}</h2></div><span class="status-dot">${status?'🟢 Em vigor':'⚪ Terminou'}</span></div>
+   <div class="health-meta"><b>O que estás a tomar:</b> ${names.length?names.map(n=>`<span class="health-pill">💊 ${esc(n)}</span>`).join(' '):'<span class="muted">Nenhum produto selecionado</span>'}</div>
+   <div class="health-actions"><button class="secondary" id="healthBtn">✏️ Editar</button>${status?'<button class="primary small" id="finishHealthBtn">Terminar</button>':'<button class="secondary" id="newHealthBtn">＋ Novo registo</button>'}</div>
+  </div>`;
+ }
+ const btn=$('healthBtn'); if(btn)btn.onclick=openHealthDialog;
+ const finish=$('finishHealthBtn'); if(finish)finish.onclick=finishHealth;
+ const newBtn=$('newHealthBtn'); if(newBtn)newBtn.onclick=()=>{healthRecord=null;openHealthDialog()};
+}
+function healthProductOptions(selected=[]){
+ return products.map(p=>`<label class="check-product"><input type="checkbox" name="healthProduct" value="${esc(p.id)}" ${selected.includes(p.id)?'checked':''}><span>${icon[p.type]||'📦'}</span><span><b>${esc(p.name)}</b><small>${esc(p.active)}</small></span></label>`).join('');
+}
+function openHealthDialog(){
+ const r=healthRecord||{startDate:new Date().toISOString().slice(0,10),active:true,products:[]};
+ $('hStartDate').value=r.startDate||new Date().toISOString().slice(0,10);
+ $('hActive').checked=r.active!==false;
+ $('healthProducts').innerHTML=healthProductOptions(r.products||[]);
+ $('healthDialog').showModal();
+}
+function closeHealthDialog(){$('healthDialog').close()}
+async function saveHealth(e){
+ e.preventDefault();
+ const selected=[...document.querySelectorAll('input[name="healthProduct"]:checked')].map(x=>x.value);
+ healthRecord={id:healthRecord?.id||'current',startDate:$('hStartDate').value,active:$('hActive').checked,products:selected,updatedAt:Date.now()};
+ await saveHealthRecord(healthRecord);closeHealthDialog();renderHealthCard();
+}
+async function finishHealth(){
+ if(!healthRecord)return;
+ healthRecord={...healthRecord,active:false,endDate:new Date().toISOString().slice(0,10),updatedAt:Date.now()};
+ await saveHealthRecord(healthRecord);renderHealthCard();
+}
 function openDialog(){$('productDialog').showModal()}function closeDialog(){$('productDialog').close();$('productForm').reset()}
 init();
